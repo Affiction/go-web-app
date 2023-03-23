@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/Affiction/go-web-app/cmd/pkg/config"
+	"github.com/Affiction/go-web-app/cmd/pkg/models"
 )
 
 var app *config.AppConfig
@@ -16,10 +17,21 @@ func NewTemplates(c *config.AppConfig) {
 	app = c
 }
 
+func AddDefaultData(td *models.TemplateData) *models.TemplateData {
+	return td
+}
+
 // RenderTemplate renders the given template using the provided http.ResponseWriter.
-func RenderTemplate(w http.ResponseWriter, tmpl string) {
-	// Create template cache
-	tc := app.TemplateCache
+func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
+	var tc map[string]*template.Template
+
+	// If we working in development mode, we create a cache for the each request
+	if app.UseCache {
+		// Create template cache
+		tc = app.TemplateCache
+	} else {
+		tc, _ = CreateTemplateCache()
+	}
 
 	// Get template from cache
 	t, ok := tc[tmpl]
@@ -30,7 +42,9 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 
 	buf := new(bytes.Buffer)
 
-	err := t.Execute(buf, nil)
+	td = AddDefaultData(td)
+
+	err := t.Execute(buf, td)
 	if err != nil {
 		log.Println(err)
 	}
@@ -45,7 +59,7 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 
 func CreateTemplateCache() (map[string]*template.Template, error) {
 	myCache := map[string]*template.Template{}
-	println("Create cache")
+
 	pages, err := filepath.Glob("./templates/*.page.tmpl")
 	if err != nil {
 		return myCache, err
