@@ -4,18 +4,32 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/Affiction/go-web-app/cmd/pkg/config"
 	"github.com/Affiction/go-web-app/cmd/pkg/handlers"
 	"github.com/Affiction/go-web-app/cmd/pkg/render"
+	"github.com/alexedwards/scs/v2"
 )
 
 const (
 	port = ":8080"
 )
 
+var app config.AppConfig
+var sessionManager *scs.SessionManager
+
 func main() {
-	var app config.AppConfig
+
+	app.Production = false
+
+	sessionManager = scs.New()
+	sessionManager.Lifetime = 24 * time.Hour
+	sessionManager.Cookie.Persist = true
+	sessionManager.Cookie.SameSite = http.SameSiteLaxMode
+	sessionManager.Cookie.Secure = app.Production
+
+	app.Session = sessionManager
 
 	tc, err := render.CreateTemplateCache()
 	if err != nil {

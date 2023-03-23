@@ -4,7 +4,13 @@
 <section class="section">
   <div class="container">
     <h1 class="title">About page</h1>
-    <p class="subtitle">My first website with <strong>Bulma</strong>!</p>
+    <p class="subtitle">
+      {{if ne (index .StringMap "remote_ip") "" }}
+      Your local IP is {{index .StringMap "remote_ip"}}
+      {{else}}
+      We dont know your IP address
+      {{ end }}
+    </p>
   </div>
 </section>
 {{ end }}

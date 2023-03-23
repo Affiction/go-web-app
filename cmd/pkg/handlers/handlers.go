@@ -30,13 +30,19 @@ func NewHandlers(r *Repository) {
 
 // Home page handler
 func (repo *Repository) Home(w http.ResponseWriter, r *http.Request) {
-	stringMap := make(map[string]string)
-	stringMap["test"] = "This is template data"
-	
-	render.RenderTemplate(w, "home.page.tmpl", &models.TemplateData{StringMap: stringMap})
+	remoteIp := r.RemoteAddr
+	repo.App.Session.Put(r.Context(), "remote_ip", remoteIp)
+
+	render.RenderTemplate(w, "home.page.tmpl", &models.TemplateData{})
 }
 
 // About page handler
 func (repo *Repository) About(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, "about.page.tmpl", &models.TemplateData{})
+	stringMap := map[string]string{}
+	remoteIp := repo.App.Session.GetString(r.Context(), "remote_ip")
+	stringMap["remote_ip"] = remoteIp
+
+	render.RenderTemplate(w, "about.page.tmpl", &models.TemplateData{
+		StringMap: stringMap,
+	})
 }
